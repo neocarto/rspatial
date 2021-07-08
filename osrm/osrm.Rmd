@@ -9,17 +9,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-https://github.com/Project-OSRM/osrm-backend
-https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html
+OSRM (Open Source Routing Machine) is a C++ implementation of a high performance route search engine to obtain the shortest paths in a road network. Available under a simplified BSD license, OSRM is an open source service. See http://project-osrm.org/docs/v5.24.0/api/. 
 
+OSRM has a demo server to test the software, but it is limited. It is therefore not recommended to use it to launch a large number of requests. Fortunately, it is possible to install an instance of OSRM locally with a docker container.
+
+More explanations [here](https://github.com/Project-OSRM/osrm-backend) and [here in french](https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html) (thanks to Timothée).
 
 ## 1. Set up an instance of OSRM
 
-
-https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html
-
-<ins>1.1 Install Docker</ins><br/>
-
+<ins>1.1 Install Docker</ins>
 
 ```
 sudo apt update
@@ -32,39 +30,97 @@ sudo apt install docker-ce
 
 <ins>1.2 Increase swap memory (if needed)</ins>
 
-- fallocate -l 64G /scripts/swap.swap
-- chmod 600 /scripts/swap.swap
-- mkswap /scripts/swap.swap
-- swapon /scripts/swap.swap
-- echo 20 > /proc/sys/vm/swappiness
+```
+fallocate -l 64G /scripts/swap.swap
+chmod 600 /scripts/swap.swap
+mkswap /scripts/swap.swap
+swapon /scripts/swap.swap
+echo 20 > /proc/sys/vm/swappiness
+```
 
 <ins>1.3 Downloading OSM data</ins>
 
-- mkdir france
-- cd france
-- wget http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf
+```
+mkdir france
+cd france
+wget http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf
+```
 
 <ins>1.4 Preparing data for OSRM</ins>
 
-- docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/france-latest.osm.pbf
-- docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-partition /data/france-latest.osrm
-- docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-customize /data/france-latest.osrm
+```
+docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-extract -p /opt/car.lua /data/france-latest.osm.pbf
+docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-partition /data/france-latest.osrm
+docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-customize /data/france-latest.osrm
+```
 
-<ins>Launch OSRM</ins>
+<ins>1.5 Launch OSRM</ins>
 
-- docker run --rm -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend:latest osrm-routed --algorithm mld --max-table-size 50000000 /data/france-latest.osrm
+```
+docker run --rm -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend:latest osrm-routed --algorithm mld --max-table-size 50000000 /data/france-latest.osrm
+```
 
-The OSRM instance will now be accessible at the server address 183.xx.xx.xxx on port 5000. Yolo! 
-
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+The OSRM instance will now be accessible at the server address 0.0.0.0:5000. Yolo! 
 
 ## 2. Creation of a matrix using R language
 
+### 2.1 Isère (France)
 
+In this first example, we work on the municipalities of Isère (France). The data come from the IGN [Admin Express API](https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express) and are available here : ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z
+The R script below allows us to format them. 
 
-```{r cars}
-summary(cars)
+``` {r, echo = TRUE, eval = FALSE}
+# Data import
+library(sf)
+com = st_read("COMMUNE.shp") # use the good path
+
+# Data handling
+isere = com[com$INSEE_DEP == "38",]
+cheflieu =  st_read("CHFLIEU_COMMUNE.shp") # use the good path
+lonlat = st_coordinates(cheflieu)
+cheflieu =  cheflieu %>% st_drop_geometry()
+cheflieu = cbind(cheflieu, lonlat)
+isere = merge(isere, cheflieu, by.x = "ID", by.y = "ID_COM")
+isere = isere[,c("INSEE_COM","")]
+isere <- isere[,c("INSEE_COM","NOM.x","POPULATION","X","Y","geometry")]
+colnames(isere) = c("id","name","population","lon","lat","geometry")
+
+# Simplification
+library(rmapshaper)
+isere = ms_simplify(isere, keep = 0.05)
+
+# Export
+st_write(isere,"data/isere.geojson")
 ```
+
+Of course you cane use de osrm package developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this !
+
+``` {r, echo = TRUE, eval = FALSE}
+# Import data
+library(sf)
+isere = st_read("data/isere.geojson")
+isere = isere[,c("id","name","lon", "lat")] %>% st_drop_geometry()
+
+# Coordinates and ids
+coords = paste(paste(isere$lon,isere$lat,sep=","), collapse = ";")
+ids = isere$id
+
+# Get a matrix
+router = "http://0.0.0.0:5000"
+query = paste0(router,"/table/v1/driving/",coords,"?annotations=duration")
+response = RCurl::getURL(query)
+
+# Data Handling
+output = rjson::fromJSON(response)
+output = data.frame(output$duration)
+colnames(output) = ids
+row.names(output) = ids
+
+# Export data
+write.csv(output,"data/TimeDistCarIsere.csv")
+```
+
+The result is available [here](data/TimeDistCarIsere.csv)
+
+### 2.2 All Roads Lead to Rome
+

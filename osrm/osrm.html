@@ -355,14 +355,14 @@ pre code {
 </div>
 
 
-<p><a href="https://github.com/Project-OSRM/osrm-backend" class="uri">https://github.com/Project-OSRM/osrm-backend</a> <a href="https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html" class="uri">https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html</a></p>
+<p>OSRM (Open Source Routing Machine) is a C++ implementation of a high performance route search engine to obtain the shortest paths in a road network. Available under a simplified BSD license, OSRM is an open source service. See <a href="http://project-osrm.org/docs/v5.24.0/api/" class="uri">http://project-osrm.org/docs/v5.24.0/api/</a>.</p>
+<p>OSRM has a demo server to test the software, but it is limited. It is therefore not recommended to use it to launch a large number of requests. Fortunately, it is possible to install an instance of OSRM locally with a docker container.</p>
+<p>More explanations <a href="https://github.com/Project-OSRM/osrm-backend">here</a> and <a href="https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html">here in french</a> (thanks to Timothée).</p>
 <div id="set-up-an-instance-of-osrm" class="section level2">
 <h2>1. Set up an instance of OSRM</h2>
-<p><a href="https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html" class="uri">https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html</a></p>
 <ins>
 1.1 Install Docker
 </ins>
-<p><br /></p>
 <pre><code>sudo apt update
 sudo apt install apt-transport-https ca-certificates curl software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -372,46 +372,83 @@ sudo apt install docker-ce</code></pre>
 <ins>
 1.2 Increase swap memory (if needed)
 </ins>
-<ul>
-<li>fallocate -l 64G /scripts/swap.swap</li>
-<li>chmod 600 /scripts/swap.swap</li>
-<li>mkswap /scripts/swap.swap</li>
-<li>swapon /scripts/swap.swap</li>
-<li>echo 20 &gt; /proc/sys/vm/swappiness</li>
-</ul>
+<pre><code>fallocate -l 64G /scripts/swap.swap
+chmod 600 /scripts/swap.swap
+mkswap /scripts/swap.swap
+swapon /scripts/swap.swap
+echo 20 &gt; /proc/sys/vm/swappiness</code></pre>
 <ins>
 1.3 Downloading OSM data
 </ins>
-<ul>
-<li>mkdir france</li>
-<li>cd france</li>
-<li>wget <a href="http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf" class="uri">http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf</a></li>
-</ul>
+<pre><code>mkdir france
+cd france
+wget http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf</code></pre>
 <ins>
 1.4 Preparing data for OSRM
 </ins>
-<ul>
-<li>docker run -t -v “${PWD}:/data” osrm/osrm-backend osrm-extract -p /opt/car.lua /data/france-latest.osm.pbf</li>
-<li>docker run -t -v “${PWD}:/data” osrm/osrm-backend osrm-partition /data/france-latest.osrm</li>
-<li>docker run -t -v “${PWD}:/data” osrm/osrm-backend osrm-customize /data/france-latest.osrm</li>
-</ul>
+<pre><code>docker run -t -v &quot;${PWD}:/data&quot; osrm/osrm-backend osrm-extract -p /opt/car.lua /data/france-latest.osm.pbf
+docker run -t -v &quot;${PWD}:/data&quot; osrm/osrm-backend osrm-partition /data/france-latest.osrm
+docker run -t -v &quot;${PWD}:/data&quot; osrm/osrm-backend osrm-customize /data/france-latest.osrm</code></pre>
 <ins>
-Launch OSRM
+1.5 Launch OSRM
 </ins>
-<ul>
-<li>docker run –rm -t -i -p 5000:5000 -v “${PWD}:/data” osrm/osrm-backend:latest osrm-routed –algorithm mld –max-table-size 50000000 /data/france-latest.osrm</li>
-</ul>
-<p>The OSRM instance will now be accessible at the server address 183.xx.xx.xxx on port 5000. Yolo!</p>
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
-<pre class="r"><code>summary(cars)</code></pre>
-<pre><code>##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00</code></pre>
+<pre><code>docker run --rm -t -i -p 5000:5000 -v &quot;${PWD}:/data&quot; osrm/osrm-backend:latest osrm-routed --algorithm mld --max-table-size 50000000 /data/france-latest.osrm</code></pre>
+<p>The OSRM instance will now be accessible at the server address 0.0.0.0:5000. Yolo!</p>
+</div>
+<div id="creation-of-a-matrix-using-r-language" class="section level2">
+<h2>2. Creation of a matrix using R language</h2>
+<div id="isère-france" class="section level3">
+<h3>2.1 Isère (France)</h3>
+<p>In this first example, we work on the municipalities of Isère (France). The data come from the IGN <a href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express">Admin Express API</a> and are available here : <a href="ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z" class="uri">ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z</a> The R script below allows us to format them.</p>
+<pre class="r"><code># Data import
+library(sf)
+com = st_read(&quot;COMMUNE.shp&quot;) # use the good path
+
+# Data handling
+isere = com[com$INSEE_DEP == &quot;38&quot;,]
+cheflieu =  st_read(&quot;CHFLIEU_COMMUNE.shp&quot;) # use the good path
+lonlat = st_coordinates(cheflieu)
+cheflieu =  cheflieu %&gt;% st_drop_geometry()
+cheflieu = cbind(cheflieu, lonlat)
+isere = merge(isere, cheflieu, by.x = &quot;ID&quot;, by.y = &quot;ID_COM&quot;)
+isere = isere[,c(&quot;INSEE_COM&quot;,&quot;&quot;)]
+isere &lt;- isere[,c(&quot;INSEE_COM&quot;,&quot;NOM.x&quot;,&quot;POPULATION&quot;,&quot;X&quot;,&quot;Y&quot;,&quot;geometry&quot;)]
+colnames(isere) = c(&quot;id&quot;,&quot;name&quot;,&quot;population&quot;,&quot;lon&quot;,&quot;lat&quot;,&quot;geometry&quot;)
+
+# Simplification
+library(rmapshaper)
+isere = ms_simplify(isere, keep = 0.05)
+
+# Export
+st_write(isere,&quot;data/isere.geojson&quot;)</code></pre>
+<p>Of course you cane use de osrm package developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this !</p>
+<pre class="r"><code># Import data
+library(sf)
+isere = st_read(&quot;data/isere.geojson&quot;)
+isere = isere[,c(&quot;id&quot;,&quot;name&quot;,&quot;lon&quot;, &quot;lat&quot;)] %&gt;% st_drop_geometry()
+
+# Coordinates and ids
+coords = paste(paste(isere$lon,isere$lat,sep=&quot;,&quot;), collapse = &quot;;&quot;)
+ids = isere$id
+
+# Get a matrix
+router = &quot;http://0.0.0.0:5000&quot;
+query = paste0(router,&quot;/table/v1/driving/&quot;,coords,&quot;?annotations=duration&quot;)
+response = RCurl::getURL(query)
+
+# Data Handling
+output = rjson::fromJSON(response)
+output = data.frame(output$duration)
+colnames(output) = ids
+row.names(output) = ids
+
+# Export data
+write.csv(output,&quot;data/TimeDistCarIsere.csv&quot;)</code></pre>
+<p>The result is available <a href="data/TimeDistCarIsere.csv">here</a></p>
+</div>
+<div id="all-roads-lead-to-rome" class="section level3">
+<h3>2.2 All Roads Lead to Rome</h3>
+</div>
 </div>
 
 
