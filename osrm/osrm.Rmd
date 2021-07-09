@@ -96,7 +96,6 @@ st_write(isere,"data/isere.geojson")
 Of course you cane use de osrm package developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this !
 
 ``` {r, echo = TRUE, eval = FALSE}
-# Import data
 library(sf)
 isere = st_read("data/isere.geojson")
 isere = isere[,c("id","name","lon", "lat")] %>% st_drop_geometry()
@@ -114,10 +113,10 @@ response = RCurl::getURL(query)
 output = rjson::fromJSON(response)
 output = data.frame(output$duration)
 colnames(output) = ids
-row.names(output) = ids
+output = cbind(id = ids, output)
 
 # Export data
-write.csv(output,"data/TimeDistCarIsere.csv")
+write.csv(output,"data/TimeDistCarIsere.csv", row.names = FALSE )
 ```
 
 The result is available [here](data/TimeDistCarIsere.csv)

@@ -16,10 +16,10 @@ response = RCurl::getURL(query)
 output = rjson::fromJSON(response)
 output = data.frame(output$duration)
 colnames(output) = ids
-row.names(output) = ids
+output = cbind(id = ids, output)
 
 # Export data
-write.csv(output,"data/TimeDistCarIsere.csv")
+write.csv(output,"data/TimeDistCarIsere.csv", row.names = FALSE )
 
 
 
