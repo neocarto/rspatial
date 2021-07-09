@@ -121,7 +121,7 @@ write.csv(output,"data/TimeDistCarIsere.csv", row.names = FALSE )
 
 The output matrix is available [here](data/TimeDistCarIsere.csv).
 
-Find [there](https://observablehq.com/d/e5b2cdeda5dd3a06) a visualisation of this data through Observable.
+Find [there](https://observablehq.com/@neocartocnrs/iseredistancematrix) a visualisation of this data through Observable.
 
 ### 2.2 All Roads Lead to Rome
 
