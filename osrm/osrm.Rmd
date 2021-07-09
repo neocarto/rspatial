@@ -13,7 +13,7 @@ OSRM (Open Source Routing Machine) is a C++ implementation of a high performance
 
 OSRM has a demo server to test the software, but it is limited. It is therefore not recommended to use it to launch a large number of requests. Fortunately, it is possible to install an instance of OSRM locally with a docker container.
 
-More explanations [here](https://github.com/Project-OSRM/osrm-backend) and [here in french](https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html) (thanks to Timothée).
+More explanations [here](https://github.com/Project-OSRM/osrm-backend) and [there](https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html) in french (thanks to Timothée).
 
 ## 1. Set up an instance of OSRM
 
@@ -67,7 +67,7 @@ The OSRM instance will now be accessible at the server address 0.0.0.0:5000. Yol
 ### 2.1 Isère (France)
 
 In this first example, we work on the municipalities of Isère (France). The data come from the IGN [Admin Express API](https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express) and are available here : ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z
-The R script below allows us to format them. 
+The R script below allows us to handle it 
 
 ``` {r, echo = TRUE, eval = FALSE}
 # Data import
@@ -93,7 +93,7 @@ isere = ms_simplify(isere, keep = 0.05)
 st_write(isere,"data/isere.geojson")
 ```
 
-Of course you cane use de osrm package developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this !
+Of course you can use de [osrm package](https://github.com/riatelab/osrm) developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this!
 
 ``` {r, echo = TRUE, eval = FALSE}
 library(sf)
@@ -119,7 +119,9 @@ output = cbind(id = ids, output)
 write.csv(output,"data/TimeDistCarIsere.csv", row.names = FALSE )
 ```
 
-The result is available [here](data/TimeDistCarIsere.csv)
+The output matrix is available [here](data/TimeDistCarIsere.csv).
+
+Find [there](https://observablehq.com/d/e5b2cdeda5dd3a06) a visualisation of this data through Observable.
 
 ### 2.2 All Roads Lead to Rome
 

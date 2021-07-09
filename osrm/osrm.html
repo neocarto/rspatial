@@ -357,7 +357,7 @@ pre code {
 
 <p>OSRM (Open Source Routing Machine) is a C++ implementation of a high performance route search engine to obtain the shortest paths in a road network. Available under a simplified BSD license, OSRM is an open source service. See <a href="http://project-osrm.org/docs/v5.24.0/api/" class="uri">http://project-osrm.org/docs/v5.24.0/api/</a>.</p>
 <p>OSRM has a demo server to test the software, but it is limited. It is therefore not recommended to use it to launch a large number of requests. Fortunately, it is possible to install an instance of OSRM locally with a docker container.</p>
-<p>More explanations <a href="https://github.com/Project-OSRM/osrm-backend">here</a> and <a href="https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html">here in french</a> (thanks to Timothée).</p>
+<p>More explanations <a href="https://github.com/Project-OSRM/osrm-backend">here</a> and <a href="https://rcarto.gitpages.huma-num.fr/materaccess/01_install_OSRM.html">there</a> in french (thanks to Timothée).</p>
 <div id="set-up-an-instance-of-osrm" class="section level2">
 <h2>1. Set up an instance of OSRM</h2>
 <ins>
@@ -399,7 +399,7 @@ docker run -t -v &quot;${PWD}:/data&quot; osrm/osrm-backend osrm-customize /data
 <h2>2. Creation of a matrix using R language</h2>
 <div id="isère-france" class="section level3">
 <h3>2.1 Isère (France)</h3>
-<p>In this first example, we work on the municipalities of Isère (France). The data come from the IGN <a href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express">Admin Express API</a> and are available here : <a href="ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z" class="uri">ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z</a> The R script below allows us to format them.</p>
+<p>In this first example, we work on the municipalities of Isère (France). The data come from the IGN <a href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express">Admin Express API</a> and are available here : <a href="ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z" class="uri">ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z</a> The R script below allows us to handle it</p>
 <pre class="r"><code># Data import
 library(sf)
 com = st_read(&quot;COMMUNE.shp&quot;) # use the good path
@@ -421,9 +421,8 @@ isere = ms_simplify(isere, keep = 0.05)
 
 # Export
 st_write(isere,&quot;data/isere.geojson&quot;)</code></pre>
-<p>Of course you cane use de osrm package developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this !</p>
-<pre class="r"><code># Import data
-library(sf)
+<p>Of course you can use de <a href="https://github.com/riatelab/osrm">osrm package</a> developped by Timothée Giraud. But here, I prefer to call directly the api without wrapper. Like this!</p>
+<pre class="r"><code>library(sf)
 isere = st_read(&quot;data/isere.geojson&quot;)
 isere = isere[,c(&quot;id&quot;,&quot;name&quot;,&quot;lon&quot;, &quot;lat&quot;)] %&gt;% st_drop_geometry()
 
@@ -440,11 +439,12 @@ response = RCurl::getURL(query)
 output = rjson::fromJSON(response)
 output = data.frame(output$duration)
 colnames(output) = ids
-row.names(output) = ids
+output = cbind(id = ids, output)
 
 # Export data
-write.csv(output,&quot;data/TimeDistCarIsere.csv&quot;)</code></pre>
-<p>The result is available <a href="data/TimeDistCarIsere.csv">here</a></p>
+write.csv(output,&quot;data/TimeDistCarIsere.csv&quot;, row.names = FALSE )</code></pre>
+<p>The output matrix is available <a href="data/TimeDistCarIsere.csv">here</a>.</p>
+<p>Find <a href="https://observablehq.com/d/e5b2cdeda5dd3a06">there</a> a visualisation of this data through Observable.</p>
 </div>
 <div id="all-roads-lead-to-rome" class="section level3">
 <h3>2.2 All Roads Lead to Rome</h3>
