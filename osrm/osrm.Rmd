@@ -31,11 +31,7 @@ sudo apt install docker-ce
 <ins>1.2 Increase swap memory (if needed)</ins>
 
 ```
-fallocate -l 64G /scripts/swap.swap
-chmod 600 /scripts/swap.swap
-mkswap /scripts/swap.swap
-swapon /scripts/swap.swap
-echo 20 > /proc/sys/vm/swappiness
+See how to do here : https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-20-04-fr
 ```
 
 <ins>1.3 Downloading OSM data</ins>

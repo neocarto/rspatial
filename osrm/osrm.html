@@ -372,11 +372,7 @@ sudo apt install docker-ce</code></pre>
 <ins>
 1.2 Increase swap memory (if needed)
 </ins>
-<pre><code>fallocate -l 64G /scripts/swap.swap
-chmod 600 /scripts/swap.swap
-mkswap /scripts/swap.swap
-swapon /scripts/swap.swap
-echo 20 &gt; /proc/sys/vm/swappiness</code></pre>
+<pre><code>See how to do here : https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-20-04-fr</code></pre>
 <ins>
 1.3 Downloading OSM data
 </ins>
@@ -397,8 +393,8 @@ docker run -t -v &quot;${PWD}:/data&quot; osrm/osrm-backend osrm-customize /data
 </div>
 <div id="creation-of-a-matrix-using-r-language" class="section level2">
 <h2>2. Creation of a matrix using R language</h2>
-<div id="isère-france" class="section level3">
-<h3>2.1 Isère (France)</h3>
+<div id="isère-n---n" class="section level3">
+<h3>2.1 Isère (n -&gt; n)</h3>
 <p>In this first example, we work on the municipalities of Isère (France). The data come from the IGN <a href="https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html#admin-express">Admin Express API</a> and are available here : <a href="ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z" class="uri">ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS-COG-CARTO_3-0__SHP__FRA_WM_2021-05-19.7z</a> The R script below allows us to handle it</p>
 <pre class="r"><code># Data import
 library(sf)
@@ -446,8 +442,8 @@ write.csv(output,&quot;data/TimeDistCarIsere.csv&quot;, row.names = FALSE )</cod
 <p>The output matrix is available <a href="data/TimeDistCarIsere.csv">here</a>.</p>
 <p>Find <a href="https://observablehq.com/@neocartocnrs/iseredistancematrix">there</a> a visualisation of this data through Observable.</p>
 </div>
-<div id="all-roads-lead-to-rome" class="section level3">
-<h3>2.2 All Roads Lead to Rome</h3>
+<div id="distance-to-paris-by-road-n---1" class="section level3">
+<h3>2.2 Distance to Paris by road (n -&gt; 1)</h3>
 </div>
 </div>
 
