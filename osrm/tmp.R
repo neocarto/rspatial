@@ -10,6 +10,8 @@ dots = dots[,c("id","POP_2020","AREA_KM2","X","Y")] %>% st_drop_geometry()
 colnames(dots) = c("id","pop","area","lon","lat")
 dots = dots[dots$lat > 40.93,]
 
+View(dots)
+
 # Coordinates and ids
 coords = paste(paste(dots$lon,dots$lat,sep=","), collapse = ";")
 ids = dots$id
@@ -59,7 +61,9 @@ for(i in 1:length(files)){
   file = read.csv(paste0("tmp/",files[i]))
   df = rbind(df,file)
   }
-write.csv(df, "data/TimeDistToParis.csv", row.names = FALSE)
+
+output = merge(dots, df, by.x = "id", by.y = "id")
+write.csv(output, "data/TimeDistToParis.csv", row.names = FALSE)
 
 # Intermediate files are deleted
 unlink("tmp", recursive = TRUE)

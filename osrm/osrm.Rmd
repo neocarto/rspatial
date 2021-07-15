@@ -198,7 +198,8 @@ for(i in 1:length(files)){
   file = read.csv(paste0("tmp/",files[i]))
   df = rbind(df,file)
   }
-write.csv(df, "data/TimeDistToParis.csv", row.names = FALSE)
+output = merge(dots, df, by.x = "id", by.y = "id")
+write.csv(output, "data/TimeDistToParis.csv", row.names = FALSE)
 
 # Intermediate files are deleted
 unlink("tmp", recursive = TRUE)
