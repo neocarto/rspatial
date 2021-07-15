@@ -444,6 +444,70 @@ write.csv(output,&quot;data/TimeDistCarIsere.csv&quot;, row.names = FALSE )</cod
 </div>
 <div id="distance-to-paris-by-road-n---1" class="section level3">
 <h3>2.2 Distance to Paris by road (n -&gt; 1)</h3>
+<p>Here we work on the LAU2 units provided by Eurostat. Then, we select only the French communes</p>
+<pre class="r"><code># Data Import
+library(sf)
+lau2 = st_read(&quot;https://gisco-services.ec.europa.eu/distribution/v2/lau/geojson/LAU_RG_01M_2020_4326.geojson&quot;)
+
+# Data handling
+dots = st_centroid(lau2[lau2$CNTR_CODE == &quot;FR&quot;,])
+dots = cbind(dots,st_coordinates(dots))
+dots = dots[,c(&quot;id&quot;,&quot;POP_2020&quot;,&quot;AREA_KM2&quot;,&quot;X&quot;,&quot;Y&quot;)] %&gt;% st_drop_geometry()
+colnames(dots) = c(&quot;id&quot;,&quot;pop&quot;,&quot;area&quot;,&quot;lon&quot;,&quot;lat&quot;)
+dots = dots[dots$lat &gt; 40.93,]
+
+# Coordinates and ids
+coords = paste(paste(dots$lon,dots$lat,sep=&quot;,&quot;), collapse = &quot;;&quot;)
+ids = dots$id</code></pre>
+<p>Then, we select the code corresponding to Paris. The objective is to calculate with OSRM all the times distance by car to Paris.</p>
+<pre class="r"><code># destination
+target = &quot;FR_75056&quot;
+destination &lt;- match(target, dots$id) - 1</code></pre>
+<p>In order not to overload the computer’s memory, we create a function that will perform the search piece by piece and store the result in temporary files.</p>
+<pre class="r"><code>getdist = function(start){
+
+# source
+end = start + 999
+if(end &gt; dim(dots)[1]){end = dim(dots)[1]-1}
+source = paste(rep(start:end), collapse = &quot;;&quot;)
+
+# Get a matrix
+router = &quot;http://0.0.0.0:5000&quot;
+query = paste0(router,&quot;/table/v1/driving/&quot;,coords,&quot;?destinations=&quot;,destination,&quot;&amp;sources=&quot;,source,&quot;&amp;annotations=duration&quot;)
+start_time &lt;- Sys.time()
+response = RCurl::getURL(query)
+end_time &lt;- Sys.time()
+end_time - start_time
+
+# Data Handling
+output = rjson::fromJSON(response)
+output = data.frame(output$duration)
+
+
+output = cbind(id = ids[(start+1):(end+1)], output)
+colnames(output) = c(&quot;id&quot;,&quot;duration&quot;)
+
+# Export data
+file = paste0(&quot;tmp/TimeDistToParis_&quot;,start,&quot;_&quot;,end,&quot;.csv&quot;)
+write.csv(output,file, row.names = FALSE )
+}</code></pre>
+<p>The we call the function…</p>
+<pre class="r"><code>for(i in seq(from=0, to=34000, by=1000)){
+getdist(i)
+}</code></pre>
+<p>…and we put the pieces together.</p>
+<pre class="r"><code># Merge
+df &lt;- data.frame(id=character(),duration =  integer()) 
+files = list.files(&quot;tmp/&quot;)
+for(i in 1:length(files)){
+  file = read.csv(paste0(&quot;tmp/&quot;,files[i]))
+  df = rbind(df,file)
+  }
+write.csv(df, &quot;data/TimeDistToParis.csv&quot;, row.names = FALSE)
+
+# Intermediate files are deleted
+unlink(&quot;tmp&quot;, recursive = TRUE)</code></pre>
+<p>The result file is available <a href="data/TimeDistToParis.csv">here</a></p>
 </div>
 </div>
 

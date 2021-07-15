@@ -1,4 +1,3 @@
-# Tous les chemins menent à Rome
 
 # Data Import
 library(sf)
@@ -52,3 +51,16 @@ getdist(i)
 }
 
 
+# Merge
+
+df <- data.frame(id=character(),duration =  integer()) 
+files = list.files("tmp/")
+for(i in 1:length(files)){
+  file = read.csv(paste0("tmp/",files[i]))
+  df = rbind(df,file)
+  }
+write.csv(df, "data/TimeDistToParis.csv", row.names = FALSE)
+
+# Intermediate files are deleted
+unlink("tmp", recursive = TRUE)
+         

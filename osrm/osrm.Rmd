@@ -121,7 +121,88 @@ Find [there](https://observablehq.com/@neocartocnrs/iseredistancematrix) a visua
 
 ### 2.2 Distance to Paris by road (n -> 1)
 
+Here we work on the LAU2 units provided by Eurostat. Then, we select only the French communes
+
+``` {r, echo = TRUE, eval = FALSE}
+# Data Import
+library(sf)
+lau2 = st_read("https://gisco-services.ec.europa.eu/distribution/v2/lau/geojson/LAU_RG_01M_2020_4326.geojson")
+
+# Data handling
+dots = st_centroid(lau2[lau2$CNTR_CODE == "FR",])
+dots = cbind(dots,st_coordinates(dots))
+dots = dots[,c("id","POP_2020","AREA_KM2","X","Y")] %>% st_drop_geometry()
+colnames(dots) = c("id","pop","area","lon","lat")
+dots = dots[dots$lat > 40.93,]
+
+# Coordinates and ids
+coords = paste(paste(dots$lon,dots$lat,sep=","), collapse = ";")
+ids = dots$id
+```
+
+Then, we select the code corresponding to Paris. The objective is to calculate with OSRM all the times distance by car to Paris. 
+
+``` {r, echo = TRUE, eval = FALSE}
+# destination
+target = "FR_75056"
+destination <- match(target, dots$id) - 1
+```
+
+In order not to overload the computer's memory, we create a function that will perform the search piece by piece and store the result in temporary files. 
+
+``` {r, echo = TRUE, eval = FALSE}
+getdist = function(start){
+
+# source
+end = start + 999
+if(end > dim(dots)[1]){end = dim(dots)[1]-1}
+source = paste(rep(start:end), collapse = ";")
+
+# Get a matrix
+router = "http://0.0.0.0:5000"
+query = paste0(router,"/table/v1/driving/",coords,"?destinations=",destination,"&sources=",source,"&annotations=duration")
+start_time <- Sys.time()
+response = RCurl::getURL(query)
+end_time <- Sys.time()
+end_time - start_time
+
+# Data Handling
+output = rjson::fromJSON(response)
+output = data.frame(output$duration)
 
 
+output = cbind(id = ids[(start+1):(end+1)], output)
+colnames(output) = c("id","duration")
 
+# Export data
+file = paste0("tmp/TimeDistToParis_",start,"_",end,".csv")
+write.csv(output,file, row.names = FALSE )
+}
+```
+
+The we call the function...
+
+``` {r, echo = TRUE, eval = FALSE}
+for(i in seq(from=0, to=34000, by=1000)){
+getdist(i)
+}
+``` 
+
+...and we put the pieces together.
+
+``` {r, echo = TRUE, eval = FALSE}
+# Merge
+df <- data.frame(id=character(),duration =  integer()) 
+files = list.files("tmp/")
+for(i in 1:length(files)){
+  file = read.csv(paste0("tmp/",files[i]))
+  df = rbind(df,file)
+  }
+write.csv(df, "data/TimeDistToParis.csv", row.names = FALSE)
+
+# Intermediate files are deleted
+unlink("tmp", recursive = TRUE)
+``` 
+
+The result file is available [here](data/TimeDistToParis.csv)
 
