@@ -107,10 +107,15 @@ drawgeoid <- function(nb = 180, exag = 10000, zoom = 0.62){
     if (i >= 10){j <- paste0("0",i)}
     if (i >= 100){j <- i}
     
-    filename <- paste0("img/geoid_",exag,"_",j, ".jpg")
+    folder = paste0("img/",exag)
+    if (!file.exists(folder)){dir.create(folder)}
+    
+    filename <- paste0(folder, "/geoid_",j, ".jpg")
     rgl.snapshot(filename)    
     
     # low definition
+
+    
     img <- image_read(filename) # %>% image_scale("800x")
     image_write(img, path = filename, format = "jpeg", quality = 75) 
   }
@@ -121,4 +126,6 @@ drawgeoid <- function(nb = 180, exag = 10000, zoom = 0.62){
 # GO !!!!!!!!!!
 # -------------
 
-drawgeoid(nb = 2, exag = 15000, zoom = 0.70)
+for (i in 0:25){
+  drawgeoid(nb = 45, exag = i * 1000, zoom = 0.70)
+}
