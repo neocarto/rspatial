@@ -199,7 +199,7 @@ for(i in 1:length(files)){
   df = rbind(df,file)
   }
 output = merge(dots, df, by.x = "id", by.y = "id")
-write.csv(output, "data/TimeDistToParis.csv", row.names = FALSE)
+write.csv(output, "data/TimeDistToParis.csv", row.names = FALSE)cd 
 
 # Intermediate files are deleted
 unlink("tmp", recursive = TRUE)
