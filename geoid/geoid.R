@@ -53,6 +53,8 @@ jet.colors <-
   colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                      "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
+jet.colors(1)
+
 
 plotmap <- function(myexag = 20000){
   theta = 0
@@ -105,19 +107,11 @@ drawgeoid <- function(nb = 180, exag = 10000, zoom = 0.62){
     if (i >= 10){j <- paste0("0",i)}
     if (i >= 100){j <- i}
     
-    filename <- paste0("PNG/geoid_",exag,"_",j, ".jpg")
-    filename
+    filename <- paste0("img/geoid_",exag,"_",j, ".jpg")
     rgl.snapshot(filename)    
     
     # low definition
-    leg <- image_read("img/legend.png")
     img <- image_read(filename) # %>% image_scale("800x")
-    img <- image_annotate(img,  paste0("Déformation exagérée ",exag, " fois"), size = 25, color = "#3b3935", boxcolor = "#edbf1c", location = "+10+960")
-    img <- image_composite(img, leg, offset = "+10+10")
-    img <- image_annotate(img,  "Bosses", size = 15, color = "#616362", location = "+42+25")
-    img <- image_annotate(img,  "Creux", size = 15, color = "#616362", location = "+42+235")
-    img <- image_annotate(img,  "Variation du géoide terrestre (altitude zéro)", size = 17, color = "#616362", location = "+42+200", degrees = -90)
-    img <- image_annotate(img,  "Nicolas Lambert, 2021 - Source : Earth Gravitational Model 2008 (EGM2008)", size = 14, color = "#616362", location = "+985+990", degrees = -90)
     image_write(img, path = filename, format = "jpeg", quality = 50) 
   }
   
