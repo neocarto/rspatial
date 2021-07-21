@@ -112,7 +112,7 @@ drawgeoid <- function(nb = 180, exag = 10000, zoom = 0.62){
     
     # low definition
     img <- image_read(filename) # %>% image_scale("800x")
-    image_write(img, path = filename, format = "jpeg", quality = 50) 
+    image_write(img, path = filename, format = "jpeg", quality = 75) 
   }
   
 }
