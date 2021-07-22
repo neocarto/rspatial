@@ -39,7 +39,7 @@ See how to do here : https://www.digitalocean.com/community/tutorials/how-to-add
 ```
 mkdir france
 cd france
-wget http://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf
+wget https://download.geofabrik.de/europe/france-latest.osm.pbf
 ```
 
 <ins>1.4 Preparing data for OSRM</ins>
